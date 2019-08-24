@@ -1,4 +1,6 @@
-default: run
+.PHONY: agbcc
+
+default: agbcc run
 
 help: # with thanks to Ben Rady
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -54,6 +56,9 @@ check: $(NODE_MODULES) test lint  ## Runs all checks required before committing
 
 clean:  ## Cleans up everything
 	rm -rf node_modules .*-updated .*-bin out static/dist static/vs
+
+agbcc:
+	make -C agbcc
 
 run: export NODE_ENV=LOCAL WEBPACK_ARGS="-p"
 run: prereqs  ## Runs the site normally
