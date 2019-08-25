@@ -1,0 +1,82 @@
+# config.bfd
+#
+#   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING3.  If not see
+# <http://www.gnu.org/licenses/>.
+#
+# Convert a canonical host type into a BFD host type.
+# Set shell variable targ to canonical target name, and run
+# using ``. config.bfd''.
+# Sets the following shell variables:
+#  targ_defvec		Default vector for this target
+#  targ_selvecs		Vectors to build for this target
+#  targ64_selvecs	Vectors to build if --enable-64-bit-bfd is given
+#			or if host is 64 bit.
+#  targ_archs		Architectures for this target
+#  targ_cflags		$(CFLAGS) for this target (FIXME: pretty bogus)
+#  targ_underscore	Whether underscores are used: yes or no
+
+# Part of this file is processed by targmatch.sed to generate the
+# targmatch.h file.  The #ifdef and #endif lines that appear below are
+# copied directly into targmatch.h.
+
+# The binutils c++filt program wants to know whether underscores are
+# stripped or not.  That is why we set targ_underscore.  c++filt uses
+# this information to choose a default.  This information is
+# duplicated in the symbol_leading_char field of the BFD target
+# vector, but c++filt does not deal with object files and is not
+# linked against libbfd.a.  It is not terribly important that c++filt
+# get this right; it is just convenient.
+
+targ_defvec=
+targ_selvecs=
+targ64_selvecs=
+targ_cflags=
+targ_underscore=no
+
+targ_cpu=`echo $targ | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
+case "${targ_cpu}" in
+arm*)		 targ_archs=bfd_arm_arch ;;
+*)		 targ_archs=bfd_${targ_cpu}_arch ;;
+esac
+
+
+# WHEN ADDING ENTRIES TO THIS MATRIX:
+#  Make sure that the left side always has two dashes.  Otherwise you
+#  can get spurious matches.  Even for unambiguous cases, do this as a
+#  convention, else the table becomes a real mess to understand and maintain.
+
+case "${targ}" in
+  plugin)
+    targ_defvec=plugin_vec
+    targ_selvecs="plugin_vec"
+    ;;
+
+# START OF targmatch.h
+  arm-*-elf | arm*-*-freebsd* | arm*-*-linux-* | arm*-*-conix* | \
+  arm*-*-uclinux* | arm-*-kfreebsd*-gnu | \
+  arm*-*-eabi* | arm-*-rtems* | arm*-*-uclinuxfdpiceabi)
+    targ_defvec=arm_elf32_le_vec
+    targ_selvecs="arm_elf32_fdpic_le_vec"
+    ;;
+# END OF targmatch.h
+  *)
+    echo 1>&2 "*** BFD does not support target ${targ}."
+    echo 1>&2 "*** Look in bfd/config.bfd for supported targets."
+    exit 1
+    ;;
+esac
+
+targ_selvecs="${targ_selvecs} elf32_le_vec"
