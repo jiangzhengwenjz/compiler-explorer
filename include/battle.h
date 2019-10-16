@@ -9,6 +9,7 @@
 #include "battle_ai_switch_items.h"
 #include "battle_gfx_sfx_util.h"
 #include "battle_util2.h"
+#include "battle_bg.h"
 
 /*
     Banks are a name given to what could be called a 'battlerId' or 'monControllerId'.
@@ -78,7 +79,7 @@
 #define B_ACTION_SAFARI_POKEBLOCK          6
 #define B_ACTION_SAFARI_GO_NEAR            7
 #define B_ACTION_SAFARI_RUN                8
-#define B_ACTION_9                         9
+#define B_ACTION_OLDMAN_THROW              9
 #define B_ACTION_EXEC_SCRIPT               10
 #define B_ACTION_TRY_FINISH                11
 #define B_ACTION_FINISHED                  12
@@ -146,19 +147,6 @@
 // special type table Ids
 #define TYPE_FORESIGHT  0xFE
 #define TYPE_ENDTABLE   0xFF
-
-#define BS_GET_TARGET                   0
-#define BS_GET_ATTACKER                 1
-#define BS_GET_EFFECT_BANK              2
-#define BS_GET_gBank1   3
-#define BS_GET_BANK_0   7
-#define BS_ATTACKER_WITH_PARTNER        4 // for atk98_status_icon_update
-#define BS_GET_ATTACKER_SIDE            8 // for atk1E_jumpifability
-#define BS_GET_NOT_ATTACKER_SIDE        9 // for atk1E_jumpifability
-#define BS_GET_SCRIPTING_BANK           10
-#define BS_GET_OPPONENT1                12
-#define BS_GET_PLAYER2                  13
-#define BS_GET_OPPONENT2                14
 
 // for battle script commands
 #define CMP_EQUAL               0x0
@@ -264,7 +252,7 @@ struct DisableStruct
     /*0x16*/ u8 isFirstTurn;
     /*0x17*/ u8 unk17;
     /*0x18*/ u8 truantCounter : 1;
-    /*0x18*/ u8 truantSwitchInHack : 1;
+    /*0x18*/ u8 truantSwitchInHack : 1; // unused? 
     /*0x18*/ u8 unk18_a_2 : 2;
     /*0x18*/ u8 mimickedMoves : 4;
     /*0x19*/ u8 rechargeTimer;
@@ -360,7 +348,7 @@ struct WishFutureKnock
     s32 futureSightDmg[MAX_BATTLERS_COUNT];
     u16 futureSightMove[MAX_BATTLERS_COUNT];
     u8 wishCounter[MAX_BATTLERS_COUNT];
-    u8 wishUserID[MAX_BATTLERS_COUNT];
+    u8 wishMonId[MAX_BATTLERS_COUNT];
     u8 weatherDuration;
     u8 knockedOffMons[2];
 };
@@ -432,12 +420,7 @@ struct BattleCallbacksStack
 
 struct StatsArray
 {
-    u16 hp;
-    u16 atk;
-    u16 def;
-    u16 spd;
-    u16 spAtk;
-    u16 spDef;
+    u16 stats[NUM_STATS];
 };
 
 struct BattleResources
@@ -495,7 +478,7 @@ struct BattleStruct
     u8 turnCountersTracker;
     u8 wrappedMove[MAX_BATTLERS_COUNT * 2]; // Leftover from Ruby's ewram access.
     u8 moveTarget[MAX_BATTLERS_COUNT];
-    u8 expGetterId;
+    u8 expGetterMonId;
     u8 field_11;
     u8 wildVictorySong;
     u8 dynamicMoveType;
@@ -545,14 +528,10 @@ struct BattleStruct
     u16 hpOnSwitchout[2];
     u8 abilityPreventingSwitchout;
     u8 hpScale;
-    u8 field_AE;
-    u8 field_AF;
-    u8 field_B0;
-    u8 field_B1;
-    u8 field_B2;
-    u8 field_B3;
+    u16 savedBattleTypeFlags; // ???
+    void (*savedCallback)(void);
     u8 synchronizeMoveEffect;
-    u8 field_B5;
+    u8 multiplayerId;
     u8 field_B6;
     u8 atkCancellerTracker;
     u16 usedHeldItems[MAX_BATTLERS_COUNT];
@@ -571,9 +550,14 @@ struct BattleStruct
     u16 castformPalette[MAX_BATTLERS_COUNT][16];
     u8 wishPerishSongState;
     u8 wishPerishSongBattlerId;
-    u8 field_182; // overworldWeatherDone?
+    u8 field_182;
     u8 field_183;
-    u8 field_184[124]; // currently unknown
+    u8 field_184;
+    u8 field_185;
+    u8 field_186;
+    u8 field_187;
+    struct BattleEnigmaBerry battleEnigmaBerry;
+    u8 field_1A4[0x5C]; // currently unknown
 }; // size == 0x200 bytes
 
 extern struct BattleStruct *gBattleStruct;
@@ -661,52 +645,6 @@ extern struct BattleStruct *gBattleStruct;
 #define MOVE_EFFECT_NOTHING_3F          0x3F
 #define MOVE_EFFECT_AFFECTS_USER        0x40
 #define MOVE_EFFECT_CERTAIN             0x80
-
-// table ids for general animations
-#define B_ANIM_CASTFORM_CHANGE          0x0
-#define B_ANIM_STATS_CHANGE             0x1
-#define B_ANIM_SUBSTITUTE_FADE          0x2
-#define B_ANIM_SUBSTITUTE_APPEAR        0x3
-#define B_ANIM_x4                       0x4
-#define B_ANIM_ITEM_KNOCKOFF            0x5
-#define B_ANIM_TURN_TRAP                0x6
-#define B_ANIM_ITEM_EFFECT              0x7
-#define B_ANIM_SMOKEBALL_ESCAPE         0x8
-#define B_ANIM_HANGED_ON                0x9
-#define B_ANIM_RAIN_CONTINUES           0xA
-#define B_ANIM_SUN_CONTINUES            0xB
-#define B_ANIM_SANDSTORM_CONTINUES      0xC
-#define B_ANIM_HAIL_CONTINUES           0xD
-#define B_ANIM_LEECH_SEED_DRAIN         0xE
-#define B_ANIM_MON_HIT                  0xF
-#define B_ANIM_ITEM_STEAL               0x10
-#define B_ANIM_SNATCH_MOVE              0x11
-#define B_ANIM_FUTURE_SIGHT_HIT         0x12
-#define B_ANIM_DOOM_DESIRE_HIT          0x13
-#define B_ANIM_x14                      0x14
-#define B_ANIM_INGRAIN_HEAL             0x15
-#define B_ANIM_WISH_HEAL                0x16
-
-// special animations table
-#define B_ANIM_LVL_UP                   0x0
-#define B_ANIM_SWITCH_OUT_PLAYER_MON    0x1
-#define B_ANIM_SWITCH_OUT_OPPONENT_MON  0x2
-#define B_ANIM_BALL_THROW               0x3
-#define B_ANIM_SAFARI_BALL_THROW        0x4
-#define B_ANIM_SUBSTITUTE_TO_MON        0x5
-#define B_ANIM_MON_TO_SUBSTITUTE        0x6
-
-// status animation table
-#define B_ANIM_STATUS_PSN               0x0
-#define B_ANIM_STATUS_CONFUSION         0x1
-#define B_ANIM_STATUS_BRN               0x2
-#define B_ANIM_STATUS_INFATUATION       0x3
-#define B_ANIM_STATUS_SLP               0x4
-#define B_ANIM_STATUS_PRZ               0x5
-#define B_ANIM_STATUS_FRZ               0x6
-#define B_ANIM_STATUS_CURSED            0x7
-#define B_ANIM_STATUS_NIGHTMARE         0x8
-#define B_ANIM_STATUS_WRAPPED           0x9
 
 #define GET_STAT_BUFF_ID(n)((n & 0xF))              // first four bits 0x1, 0x2, 0x4, 0x8
 #define GET_STAT_BUFF_VALUE2(n)((n & 0xF0))
@@ -883,9 +821,6 @@ extern struct BattleSpriteData *gBattleSpritesDataPtr;
 extern u8 *gLinkBattleSendBuffer;
 extern u8 *gLinkBattleRecvBuffer;
 
-extern u8 *gUnknown_0202305C;
-extern u8 *gUnknown_02023060;
-
 // Move this somewhere else
 
 #include "sprite.h"
@@ -899,7 +834,7 @@ struct MonSpritesGfx
     u8 field_F4[0x80];
     u8 *barFontGfx;
     void *field_178;
-    void *field_17C;
+    u16 *field_17C;
 };
 
 extern u16 gBattle_BG0_X;
@@ -985,5 +920,17 @@ extern u8 gNumberOfMovesToChoose;
 extern u16 gLastHitByType[MAX_BATTLERS_COUNT];
 extern s32 gHpDealt;
 extern u16 gPauseCounterBattle;
+extern u16 gPaydayMoney;
+extern u16 gLockedMoves[MAX_BATTLERS_COUNT];
+extern u8 gCurrentTurnActionNumber;
+extern u16 gExpShareExp;
+extern u8 gLeveledUpInBattle;
+extern u16 gLastResultingMoves[MAX_BATTLERS_COUNT];
+extern u16 gLastPrintedMoves[MAX_BATTLERS_COUNT];
+extern u8 gActionsByTurnOrder[MAX_BATTLERS_COUNT];
+extern u8 gChosenActionByBattler[MAX_BATTLERS_COUNT];
+extern u8 gBattleTerrain;
+extern struct UnknownPokemonStruct4 gUnknown_2022B58[3];
+extern u16 *gUnknown_2022BC0;
 
 #endif // GUARD_BATTLE_H

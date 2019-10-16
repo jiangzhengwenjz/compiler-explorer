@@ -6,8 +6,13 @@
 #define TRUE  1
 #define FALSE 0
 
+#if defined(__APPLE__)
+#define IWRAM_DATA __attribute__((section("__DATA,iwram_data")))
+#define EWRAM_DATA __attribute__((section("__DATA,ewram_data")))
+#else
 #define IWRAM_DATA __attribute__((section("iwram_data")))
 #define EWRAM_DATA __attribute__((section("ewram_data")))
+#endif
 
 #define ALIGNED(n) __attribute__((aligned(n)))
 
@@ -62,14 +67,15 @@
 #define TILE_SIZE_4BPP 32
 #define TILE_SIZE_8BPP 64
 
+#define TILE_OFFSET_4BPP(n) ((n) * TILE_SIZE_4BPP)
+#define TILE_OFFSET_8BPP(n) ((n) * TILE_SIZE_8BPP)
+
 #define TOTAL_OBJ_TILE_COUNT 1024
 
 #define RGB(r, g, b) ((r) | ((g) << 5) | ((b) << 10))
 
 #define RGB_BLACK RGB(0, 0, 0)
 #define RGB_WHITE RGB(31, 31, 31)
-
-#define WIN_RANGE(a, b) (((a) << 8) | (b))
 
 #define NAKED __attribute__((naked))
 #define UNUSED __attribute__((unused))

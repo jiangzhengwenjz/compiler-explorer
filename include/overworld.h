@@ -1,5 +1,5 @@
-#ifndef GUARD_ROM4_H
-#define GUARD_ROM4_H
+#ifndef GUARD_OVERWORLD_H
+#define GUARD_OVERWORLD_H
 
 #include "global.h"
 #include "main.h"
@@ -18,10 +18,17 @@ struct LinkPlayerMapObject
     u8 mode;
 };
 
-struct UCoords32
+struct CreditsOverworldCmd
 {
-    u32 x, y;
+    s16 unk_0;
+    u16 unk_2;
+    u16 unk_4;
 };
+
+/* gDisableMapMusicChangeOnMapLoad */
+#define MUSIC_DISABLE_OFF 0
+#define MUSIC_DISABLE_STOP 1
+#define MUSIC_DISABLE_KEEP 2
 
 extern struct UCoords32 gDirectionToVectors[];
 
@@ -31,13 +38,14 @@ extern MainCallback gFieldCallback;
 extern struct WarpData gUnknown_2031DBC;
 
 extern u8 gUnknown_2031DE0;
+extern u8 gUnknown_300502C;
 
 void IncrementGameStat(u8 index);
 
 void Overworld_SetMapObjTemplateCoords(u8, s16, s16);
 void Overworld_SetMapObjTemplateMovementType(u8, u8);
 
-void Overworld_SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y);
+void SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y);
 
 void saved_warp2_set(int unused, s8 mapGroup, s8 mapNum, s8 warpId);
 void SetDynamicWarpWithCoords(int unused, s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y);
@@ -96,11 +104,11 @@ void SetWarpDestinationToFixedHoleWarp(s16 x, s16 y);
 void ResetInitialPlayerAvatarState(void);
 void sub_8055D40(u16 mapDataId);
 void CleanupOverworldWindowsAndTilemaps(void);
+u32 sub_8054C04(void);
 
-extern u8 gUnknown_2031DD8;
+extern u8 gDisableMapMusicChangeOnMapLoad;
 extern u8 gUnknown_2036E28;
 
-extern void (*gFieldCallback)(void);
 extern bool8 (* gFieldCallback2)(void);
 
 void SetLastHealLocationWarp(u8 healLocaionId);
@@ -118,5 +126,19 @@ bool8 is_light_level_8_or_9(u8 mapType);
 bool32 sub_8055C9C(void);
 void Overworld_ResetStateAfterDigEscRope(void);
 bool32 sub_8058244(void);
+u8 GetCurrentMapType(void);
 
-#endif //GUARD_ROM4_H
+u8 get_map_light_from_warp0(void);
+const struct MapHeader *warp1_get_mapheader(void);
+void sub_8055F88(void);
+void sub_8056788(void);
+void ResetGameStats(void);
+
+void Overworld_CreditsMainCB(void);
+bool32 Overworld_DoScrollSceneForCredits(u8 *, const struct CreditsOverworldCmd *, u8);
+
+bool32 sub_8058318(void);
+
+void CB2_ReturnToStartMenu(void);
+
+#endif //GUARD_OVERWORLD_H

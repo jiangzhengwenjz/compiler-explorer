@@ -31,6 +31,8 @@ extern const struct CompressedSpritePalette gMonShinyPaletteTable[];
 extern const struct CompressedSpriteSheet gTrainerFrontPicTable[];
 extern const struct CompressedSpritePalette gTrainerFrontPicPaletteTable[];
 extern const struct CompressedSpritePalette gTrainerBackPicPaletteTable[];
+extern const struct MonCoords gMonFrontPicCoords[];
+extern const struct MonCoords gMonBackPicCoords[];
 
 extern const struct CompressedSpriteSheet gSpriteSheet_EnemyShadow;
 extern const struct SpriteTemplate gSpriteTemplate_EnemyShadow;
@@ -43,11 +45,11 @@ extern const u8 *const gBattleAnims_Special[];
 extern const union AnimCmd *const *const gTrainerBackAnimsPtrTable[];
 extern const union AnimCmd *const *const gTrainerFrontAnimsPtrTable[];
 
-extern const struct OamData gUnknown_824F010;
-extern const struct OamData gUnknown_824F018;
-extern const union AnimCmd *const gUnknown_82349BC[];
-extern const union AffineAnimCmd *const gUnknown_82348C8[];
-extern const union AffineAnimCmd *const gUnknown_8234944[];
+extern const struct OamData gOamData_824F010;
+extern const struct OamData gOamData_824F018;
+extern const union AnimCmd *const gSpriteAnimTable_82349BC[];
+extern const union AffineAnimCmd *const gSpriteAffineAnimTable_82348C8[];
+extern const union AffineAnimCmd *const gSpriteAffineAnimTable_8234944[];
 extern const struct SpriteFrameImage gUnknown_8234698[];
 extern const struct SpriteFrameImage gUnknown_82346B8[];
 extern const struct SpriteFrameImage gUnknown_82346D8[];

@@ -223,5 +223,9 @@ extern const u8 BattleScript_IntimidateActivatesEnd3[];
 extern const u8 BattleScript_IgnoresWhileAsleep[];
 extern const u8 BattleScript_IgnoresAndHitsItself[];
 extern const u8 BattleScript_MoveEffectRecoil[];
+extern const u8 BattleScript_FlushMessageBox[];
+extern const u8 BattleScript_SpikesOnFaintedBattler[];
+extern const u8 BattleScript_GhostBallDodge[];
+extern const u8 gUnknown_81D9A88[];
 
 #endif // GUARD_BATTLE_SCRIPTS_H

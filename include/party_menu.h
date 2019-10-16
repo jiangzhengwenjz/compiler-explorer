@@ -10,7 +10,19 @@ enum {
     AILMENT_PRZ,
     AILMENT_SLP,
     AILMENT_FRZ,
-    AILMENT_BRN
+    AILMENT_BRN,
+    AILMENT_PKRS,
+    AILMENT_FNT
+};
+
+enum
+{
+    PARTY_CHOOSE_MON,
+    PARTY_MUST_CHOOSE_MON,
+    PARTY_CANT_SWITCH,
+    PARTY_USE_ITEM_ON,
+    PARTY_ABILITY_PREVENTS,
+    PARTY_GIVE_ITEM,
 };
 
 struct Struct203B0A0
@@ -67,5 +79,11 @@ u8 pokemon_order_func(u8);
 void sub_8127CAC(void);
 void sub_8127DA8(u8 battlerId, u8 multiplayerFlag);
 void OpenPartyMenuInBattle(u8 arg);
+void sub_8127EC4(u8 battlerId, u8 unk, u8 arrayIndex);
+bool8 IsMultiBattle(void);
+void sub_8126EDC(void);
+void PartyMenuInit_FromPlayerPc(void);
+void CB2_PartyMenuFromStartMenu(void);
+void sub_8128198(void);
 
 #endif // GUARD_PARTY_MENU_H
